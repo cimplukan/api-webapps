@@ -14,7 +14,11 @@ class InventarisController extends Controller
      */
     public function show(string $id): JsonResponse
     {
-        $inventaris = Inventaris::with(['inventarisBarang', 'inventarisRuang'])->findOrFail($id);
+        $inventaris = Inventaris::with(['inventarisBarang', 'inventarisRuang'])->find($id);
+
+        if (!$inventaris) {
+            return response()->json(['message' => 'Data not found'], 404);
+        }
 
         return response()->json(new InventarisResource($inventaris), 200, [], JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT);
     }
@@ -27,6 +31,10 @@ class InventarisController extends Controller
         $inventaris = Inventaris::with(['inventarisBarang', 'inventarisRuang'])
             ->where('id_ruang', $id)
             ->get();
+
+        if ($inventaris->isEmpty()) {
+            return response()->json(['message' => 'Data not found'], 404);
+        }
 
         return response()->json(InventarisResource::collection($inventaris), 200, [], JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT);
     }
