@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use App\Http\Requests\InventarisPerawatanCreateRequest;
 use App\Http\Resources\InventarisPerawatanCollection;
 use App\Http\Resources\InventarisPerawatanResource;
-use App\Models\Inventaris;
 use App\Models\InventarisPerawatan;
 use Illuminate\Contracts\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
@@ -18,11 +17,16 @@ class InventarisPerawatanController extends Controller
     public function store(InventarisPerawatanCreateRequest $request)
     {
         $data = $request->validated();
+        // Generate ID manually
+        $prefix = 'IP' . date('Ym', strtotime($data['tanggal']));
+        $lastID = InventarisPerawatan::where('id_inventaris_perawatan', 'like', $prefix . '%')
+            ->count();
+        $newId = $prefix . str_pad($lastID + 1, 3, '0', STR_PAD_LEFT);
 
         $perawatan = new InventarisPerawatan($data);
-        $perawatan->id_inventaris_perawatan = $data['id']; // Use 'id' from request if provided
-        $perawatan->no_inventaris = $data['no_inventaris'];
-        $perawatan->nip = $data['nip']; // Use 'nip' from request if provided
+        $perawatan->id_inventaris_perawatan = $newId;
+        $perawatan->no_inventaris = $data['noinventaris'];
+        $perawatan->nip = $data['petugas']; // Use 'nip' from request petugas
         $perawatan->save();
 
         $perawatan = InventarisPerawatan::with(["inventaris.inventarisBarang", "inventaris.inventarisRuang", "petugas"])
