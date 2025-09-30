@@ -23,12 +23,11 @@ class InventarisPerawatanCreateRequest extends FormRequest
     public function rules(): array
     {
         return [
-            "id" => "required|string|max:11",
-            "no_inventaris" => "required|string|max:20",
-            "nip" => "required|string|max:20",
+            "noinventaris" => "required|string|max:20",
+            "petugas" => "required|string|max:20",
             "tanggal" => "required|date_format:Y-m-d",
-            "kondisi" => "required|in:baik,rusak",
-            "status" => "required|in:ada,tiada",
+            "kondisi" => "required|in:Baik,Rusak",
+            "status" => "required|in:Ada,Tiada",
             "keterangan" => "nullable|string|max:11",
         ];
     }
