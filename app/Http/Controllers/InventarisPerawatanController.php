@@ -8,6 +8,7 @@ use App\Http\Resources\InventarisPerawatanResource;
 use App\Models\InventarisPerawatan;
 use Illuminate\Contracts\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
 
 class InventarisPerawatanController extends Controller
 {
@@ -67,24 +68,21 @@ class InventarisPerawatanController extends Controller
      */
     public function showByRuang(string $id, Request $request)
     {
-        // Validate the 'bulan' parameter if it exists
-        if ($request->has('bulan')) {
-            if (!preg_match('/^\d{4}-\d{2}$/', $request->input('bulan'))) {
-                return response()->json(['message' => 'Invalid month format. Use YYYY-MM.'], 400);
-            }
-        } else {
-            return response()->json(['message' => 'Bulan parameter is required.'], 400);
+        $validator = Validator::make($request->all(), [
+            'bulan' => 'required|date_format:Y-m'
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 400);
         }
 
         // Fetch perawatan records for the specified ruang
         $perawatan = InventarisPerawatan::query()
             ->whereHas('inventaris', function (Builder $query) use ($id) {
                 $query->where('id_ruang', $id);
-            });
-        $perawatan = $perawatan->when($request->has('bulan'), function (Builder $query) use ($request) {
-            $query->where('tanggal', 'like', $request->input('bulan') . '%');
-        });
-        $perawatan = $perawatan->with(['inventaris.inventarisBarang', 'inventaris.inventarisRuang'])
+            })
+            ->where('tanggal', 'like', $request->input('bulan') . '%')
+            ->with(['inventaris.inventarisBarang', 'inventaris.inventarisRuang'])
             ->get();
 
         if ($perawatan->isEmpty()) {
